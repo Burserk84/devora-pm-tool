@@ -1,0 +1,18 @@
+# docker-compose.yml
+
+services:
+  db:
+    image: postgres:15
+    container_name: devora_db
+    restart: always
+    environment:
+      POSTGRES_USER: devora_user
+      POSTGRES_PASSWORD: devora_password
+      POSTGRES_DB: devora_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
