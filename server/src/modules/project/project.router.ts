@@ -1,5 +1,10 @@
 import { Router } from "express";
-import { getProjects, createProject, getProjectById } from "./project.handler";
+import {
+  getProjects,
+  createProject,
+  getProjectById,
+  deleteProject,
+} from "./project.handler";
 
 const projectRouter = Router();
 
@@ -7,5 +12,6 @@ const projectRouter = Router();
 projectRouter.get("/", getProjects);
 projectRouter.post("/", createProject);
 projectRouter.get("/:id", getProjectById);
+projectRouter.delete("/:id", deleteProject);
 
 export default projectRouter;

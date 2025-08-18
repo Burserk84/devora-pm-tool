@@ -29,3 +29,16 @@ export const createTask = async (taskData: {
   const response = await apiClient.post("/tasks", taskData);
   return response.data.data;
 };
+
+export const updateTaskStatus = async (taskId: string, status: string) => {
+  const response = await apiClient.patch(`/tasks/${taskId}/status`, { status });
+  return response.data.data;
+};
+
+export const deleteProject = async (id: string) => {
+  await apiClient.delete(`/projects/${id}`);
+};
+
+export const deleteTask = async (id: string) => {
+  await apiClient.delete(`/tasks/${id}`);
+};

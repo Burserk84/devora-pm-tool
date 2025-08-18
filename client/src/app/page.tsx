@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { getProjects } from "@/services/projectService";
+// FIX: Import 'deleteProject' here
+import { getProjects, deleteProject } from "@/services/projectService";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
@@ -22,11 +23,6 @@ export default function DashboardPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { token } = useAuth();
 
-  const handleProjectCreated = () => {
-    setIsModalOpen(false);
-    fetchProjects();
-  };
-
   const fetchProjects = async () => {
     try {
       setIsLoading(true);
@@ -39,8 +35,12 @@ export default function DashboardPage() {
     }
   };
 
+  const handleProjectCreated = () => {
+    setIsModalOpen(false);
+    fetchProjects();
+  };
+
   useEffect(() => {
-    // Only fetch projects if the user is authenticated (token exists)
     if (token) {
       fetchProjects();
     }
@@ -49,6 +49,24 @@ export default function DashboardPage() {
   if (isLoading) {
     return <div>Loading projects...</div>;
   }
+
+  const handleDeleteProject = async (projectId: string) => {
+    if (
+      window.confirm(
+        "Are you sure you want to delete this project and all its tasks? This action cannot be undone."
+      )
+    ) {
+      try {
+        await deleteProject(projectId);
+        setProjects((currentProjects) =>
+          currentProjects.filter((p) => p.id !== projectId)
+        );
+      } catch (error) {
+        console.error("Failed to delete project", error);
+        alert("Could not delete the project. Please try again.");
+      }
+    }
+  };
 
   return (
     <div>
@@ -62,14 +80,24 @@ export default function DashboardPage() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {projects.map((project) => (
-            <Card key={project.id}>
-              <h2 className="text-xl font-semibold mb-2">{project.name}</h2>
-              <p className="text-slate-400 mb-4 h-12 overflow-hidden">
-                {project.description || "No description."}
-              </p>
-              <Link href={`/project/${project.id}`}>
-                <Button className="w-full">View Board</Button>
-              </Link>
+            <Card key={project.id} className="flex flex-col">
+              <div className="flex-grow">
+                <h2 className="text-xl font-semibold mb-2">{project.name}</h2>
+                <p className="text-slate-400 mb-4 h-12 overflow-hidden">
+                  {project.description || "No description."}
+                </p>
+              </div>
+              <div className="flex gap-2 mt-4">
+                <Link href={`/project/${project.id}`} className="w-full">
+                  <Button className="w-full">View Board</Button>
+                </Link>
+                <Button
+                  onClick={() => handleDeleteProject(project.id)}
+                  className="bg-red-800 hover:bg-red-700"
+                >
+                  Delete
+                </Button>
+              </div>
             </Card>
           ))}
         </div>

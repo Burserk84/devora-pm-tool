@@ -45,3 +45,26 @@ export const getProjectById = async (req: Request, res: Response) => {
 
   res.json({ data: project });
 };
+
+export const deleteProject = async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  // First, verify the user owns this project before doing anything
+  const project = await prisma.project.findFirst({
+    where: { id, ownerId: req.user!.id },
+  });
+
+  if (!project) {
+    return res
+      .status(404)
+      .json({ message: "Project not found or you do not have access." });
+  }
+
+  // Use a transaction to delete tasks first, then the project
+  await prisma.$transaction([
+    prisma.task.deleteMany({ where: { projectId: id } }),
+    prisma.project.delete({ where: { id } }),
+  ]);
+
+  res.status(204).send(); // 204 No Content is a standard response for a successful delete
+};
