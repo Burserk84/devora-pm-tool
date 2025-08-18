@@ -1,10 +1,11 @@
-import { Router } from 'express';
-import { getProjects, createProject } from './project.handler';
+import { Router } from "express";
+import { getProjects, createProject, getProjectById } from "./project.handler";
 
 const projectRouter = Router();
 
-// Apply the protect middleware to all routes in this file
-projectRouter.get('/', getProjects);
-projectRouter.post('/', createProject);
+// Routes
+projectRouter.get("/", getProjects);
+projectRouter.post("/", createProject);
+projectRouter.get("/:id", getProjectById);
 
 export default projectRouter;

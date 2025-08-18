@@ -27,4 +27,21 @@ export const createProject = async (req: Request, res: Response) => {
   res.status(201).json({ data: project });
 };
 
-// ... (We'll skip Update and Delete for now to keep it concise, but the pattern is the same)
+export const getProjectById = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const project = await prisma.project.findFirst({
+    where: {
+      id,
+      ownerId: req.user!.id,
+    },
+    include: {
+      tasks: true, // Include all tasks related to this project
+    },
+  });
+
+  if (!project) {
+    return res.status(404).json({ message: "Project not found" });
+  }
+
+  res.json({ data: project });
+};

@@ -1,22 +1,16 @@
-import axios from "axios";
-
-const apiClient = axios.create({
-  baseURL: "http://localhost:5001/api",
-});
-
-// We need to manually set the token from localStorage for requests
-// that might happen before the AuthContext is fully initialized.
-apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem("authToken");
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+import apiClient from "@/lib/apiClient"; // <-- IMPORT our new client
 
 export const getProjects = async () => {
   const response = await apiClient.get("/projects");
-  return response.data.data; // The projects are in the 'data' property
+  return response.data.data;
+};
+
+// This function was missing from your code, so I've added it here.
+export const getProjectById = async (id: string) => {
+  const response = await apiClient.get(`/projects/${id}`);
+  // Let's assume the response is not nested for a single item for now.
+  // We can adjust if needed.
+  return response.data.data;
 };
 
 export const createProject = async (projectData: {
@@ -24,5 +18,14 @@ export const createProject = async (projectData: {
   description?: string;
 }) => {
   const response = await apiClient.post("/projects", projectData);
+  return response.data.data;
+};
+
+export const createTask = async (taskData: {
+  title: string;
+  content?: string;
+  projectId: string;
+}) => {
+  const response = await apiClient.post("/tasks", taskData);
   return response.data.data;
 };
