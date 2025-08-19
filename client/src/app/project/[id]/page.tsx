@@ -15,6 +15,7 @@ import { DndContext, DragEndEvent, useDroppable } from "@dnd-kit/core";
 import { SortableContext, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import Link from "next/link";
+import { TaskDetailsModal } from "@/components/TaskDetailsModal";
 
 interface Task {
   id: string;
@@ -34,9 +35,11 @@ const columnMap = { TODO: "To-Do", IN_PROGRESS: "In Progress", DONE: "Done" };
 function TaskCard({
   task,
   onDelete,
+  onClick,
 }: {
   task: Task;
   onDelete: (taskId: string) => void;
+  onClick: (taskId: string) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: task.id });
@@ -49,7 +52,13 @@ function TaskCard({
   return (
     // The main div is now just a container for positioning
     <div ref={setNodeRef} style={style} {...attributes}>
-      <Card className="p-3 bg-slate-700 group relative flex items-center justify-between">
+      <Card
+        onClick={() => {
+          console.log("1. Card component was clicked. Task ID:", task.id);
+          onClick(task.id);
+        }}
+        className="p-3 bg-slate-700 group relative flex items-center justify-between cursor-pointer"
+      >
         {/* === LEFT SIDE: Drag Handle and Title === */}
         <div className="flex items-center gap-2">
           {/* THE DRAG HANDLE */}
@@ -73,9 +82,11 @@ function TaskCard({
 
         {/* === RIGHT SIDE: Delete Button === */}
         <button
-          onClick={() => onDelete(task.id)}
-          className="z-10 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
-          aria-label="Delete task"
+          onClick={(e) => {
+            e.stopPropagation();
+            onDelete(task.id);
+          }}
+          className="z-10 ..."
         >
           &#x2715;
         </button>
@@ -88,10 +99,12 @@ function KanbanColumn({
   status,
   tasks,
   onDeleteTask,
+  onTaskClick, // <-- FIX #1: Accept the onTaskClick prop here
 }: {
   status: Task["status"];
   tasks: Task[];
   onDeleteTask: (taskId: string) => void;
+  onTaskClick: (taskId: string) => void;
 }) {
   const { setNodeRef } = useDroppable({ id: status });
   return (
@@ -100,7 +113,12 @@ function KanbanColumn({
       <SortableContext items={tasks.map((t) => t.id)}>
         <div className="space-y-4">
           {tasks.map((task) => (
-            <TaskCard key={task.id} task={task} onDelete={onDeleteTask} />
+            <TaskCard
+              key={task.id}
+              task={task}
+              onDelete={onDeleteTask}
+              onClick={onTaskClick}
+            />
           ))}
         </div>
       </SortableContext>
@@ -112,6 +130,7 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
   const [project, setProject] = useState<Project | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const { token } = useAuth();
 
   const fetchProject = () => {
@@ -141,7 +160,6 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
     }
   };
 
-  // FIX #2: Moved handleDeleteTask out of handleDragEnd
   const handleDeleteTask = async (taskId: string) => {
     console.log(
       "2. handleDeleteTask function called in ProjectPage. ID:",
@@ -236,10 +254,17 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
               status={status}
               tasks={tasks.filter((task) => task.status === status)}
               onDeleteTask={handleDeleteTask}
+              onTaskClick={(taskId) => setSelectedTaskId(taskId)} 
             />
           ))}
         </div>
       </DndContext>
+
+      <TaskDetailsModal
+        taskId={selectedTaskId}
+        onClose={() => setSelectedTaskId(null)}
+        onTaskUpdate={fetchProject}
+      />
     </div>
   );
 }

@@ -42,3 +42,18 @@ export const deleteProject = async (id: string) => {
 export const deleteTask = async (id: string) => {
   await apiClient.delete(`/tasks/${id}`);
 };
+
+export const getUsers = async () => {
+  const response = await apiClient.get("/users");
+  return response.data.data;
+};
+
+export const getTaskById = async (taskId: string) => {
+  const response = await apiClient.get(`/tasks/${taskId}`);
+  return response.data.data;
+};
+
+export const updateTask = async (taskId: string, taskData: unknown) => {
+  const response = await apiClient.put(`/tasks/${taskId}`, taskData);
+  return response.data.data;
+};

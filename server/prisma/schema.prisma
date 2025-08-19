@@ -17,17 +17,6 @@ enum TaskStatus {
   DONE
 }
 
-// USER MODEL
-model User {
-  id        String    @id @default(cuid())
-  email     String    @unique
-  name      String?
-  password  String
-  projects  Project[]
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-}
-
 // PROJECT MODEL
 model Project {
   id          String   @id @default(cuid())
@@ -42,12 +31,33 @@ model Project {
 
 // TASK MODEL
 model Task {
-  id        String     @id @default(cuid())
-  title     String
-  content   String?
-  status    TaskStatus @default(TODO)
-  project   Project    @relation(fields: [projectId], references: [id])
-  projectId String
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  id          String     @id @default(cuid())
+  title       String
+  description String?    // Renamed from 'content' for clarity
+  status      TaskStatus @default(TODO)
+  project     Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId   String
+
+  dueDate     DateTime?  // Optional: A task might not have a due date
+
+  assignee    User?      @relation("AssignedTasks", fields: [assigneeId], references: [id])
+  assigneeId  String?
+
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+// User MODEL
+model User {
+  id        String    @id @default(cuid())
+  email     String    @unique
+  name      String?
+  password  String
+  
+  projects  Project[]
+  
+  assignedTasks Task[] @relation("AssignedTasks")
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }
