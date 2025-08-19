@@ -6,10 +6,19 @@ export const getProjects = async () => {
 };
 
 // This function was missing from your code, so I've added it here.
-export const getProjectById = async (id: string) => {
-  const response = await apiClient.get(`/projects/${id}`);
-  // Let's assume the response is not nested for a single item for now.
-  // We can adjust if needed.
+export const getProjectById = async (
+  id: string,
+  filters: { search?: string; assigneeId?: string }
+) => {
+  const params = new URLSearchParams();
+  if (filters.search) {
+    params.append("search", filters.search);
+  }
+  if (filters.assigneeId) {
+    params.append("assigneeId", filters.assigneeId);
+  }
+
+  const response = await apiClient.get(`/projects/${id}?${params.toString()}`);
   return response.data.data;
 };
 

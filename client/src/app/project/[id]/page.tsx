@@ -128,16 +128,34 @@ function KanbanColumn({
 }
 
 export default function ProjectPage({ params }: { params: { id: string } }) {
+  const { user: currentUser, token } = useAuth();
   const [project, setProject] = useState<Project | null>(null);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [isMembersModalOpen, setIsMembersModalOpen] = useState(false);
-  const { user: currentUser, token } = useAuth();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [assigneeFilter, setAssigneeFilter] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+
+  // This useEffect waits for the user to stop typing for 500ms before updating
+  // the 'debouncedSearchTerm', which prevents an API call on every keystroke.
+  useEffect(() => {
+    const timerId = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500);
+    return () => {
+      clearTimeout(timerId);
+    };
+  }, [searchTerm]);
 
   const fetchProject = () => {
     if (token) {
-      getProjectById(params.id)
+      // Pass the filters to the API call
+      getProjectById(params.id, {
+        search: debouncedSearchTerm,
+        assigneeId: assigneeFilter,
+      })
         .then((data) => {
           setProject(data);
           setTasks(data.tasks);
@@ -148,7 +166,7 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
 
   useEffect(() => {
     fetchProject();
-  }, [params.id, token]);
+  }, [params.id, token, debouncedSearchTerm, assigneeFilter]);
 
   const handleCreateTask = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -244,7 +262,33 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
         <Button onClick={() => setIsMembersModalOpen(true)}>Share</Button>
       </div>
 
-      <p className="text-slate-400 mb-8">{project.description}</p>
+      <div className="flex gap-4 mb-8">
+        {/* Search Input */}
+        <div className="flex-grow">
+          <Input
+            type="text"
+            placeholder="Search tasks..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+
+        {/* Assignee Filter Dropdown */}
+        <div>
+          <select
+            value={assigneeFilter}
+            onChange={(e) => setAssigneeFilter(e.target.value)}
+            className="w-full h-full rounded-md border-slate-700 bg-slate-900 px-3 py-2"
+          >
+            <option value="">All Assignees</option>
+            {project.members.map((member) => (
+              <option key={member.user.id} value={member.user.id}>
+                {member.user.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
 
       {isAdmin && (
         <form onSubmit={handleCreateTask} className="flex gap-2 mb-8 max-w-sm">

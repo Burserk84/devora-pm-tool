@@ -46,6 +46,20 @@ export const createProject = async (req: Request, res: Response) => {
 // GET a single project if the user is a member
 export const getProjectById = async (req: Request, res: Response) => {
   const { id } = req.params;
+  const { search, assigneeId } = req.query; // Get filters from query params
+
+  // Build a dynamic 'where' clause for filtering tasks
+  const taskWhereClause: any = {};
+  if (search) {
+    taskWhereClause.title = {
+      contains: search as string,
+      mode: "insensitive", // Case-insensitive search
+    };
+  }
+  if (assigneeId) {
+    taskWhereClause.assigneeId = assigneeId as string;
+  }
+
   const project = await prisma.project.findFirst({
     where: {
       id,
@@ -57,6 +71,7 @@ export const getProjectById = async (req: Request, res: Response) => {
     },
     include: {
       tasks: {
+        where: taskWhereClause, // Apply the dynamic filter here
         include: {
           assignee: {
             select: { id: true, name: true },
