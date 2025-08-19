@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-// FIX #1: Import 'deleteTask' here
 import {
   getProjectById,
   createTask,
@@ -15,8 +14,8 @@ import { useAuth } from "@/context/AuthContext";
 import { DndContext, DragEndEvent, useDroppable } from "@dnd-kit/core";
 import { SortableContext, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
+import Link from "next/link";
 
-// --- TYPES (No changes here) ---
 interface Task {
   id: string;
   title: string;
@@ -32,7 +31,6 @@ interface Project {
 const columns: Task["status"][] = ["TODO", "IN_PROGRESS", "DONE"];
 const columnMap = { TODO: "To-Do", IN_PROGRESS: "In Progress", DONE: "Done" };
 
-// --- DRAGGABLE TASK CARD (No changes here) ---
 function TaskCard({
   task,
   onDelete,
@@ -55,7 +53,6 @@ function TaskCard({
         {/* === LEFT SIDE: Drag Handle and Title === */}
         <div className="flex items-center gap-2">
           {/* THE DRAG HANDLE */}
-          {/* The drag listeners are now ONLY on this button */}
           <button
             {...listeners}
             className="cursor-grab active:cursor-grabbing p-1 text-slate-400"
@@ -75,7 +72,6 @@ function TaskCard({
         </div>
 
         {/* === RIGHT SIDE: Delete Button === */}
-        {/* This button is now free from any conflicting listeners */}
         <button
           onClick={() => onDelete(task.id)}
           className="z-10 text-slate-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -87,7 +83,7 @@ function TaskCard({
     </div>
   );
 }
-// --- DROPPABLE KANBAN COLUMN (No changes here) ---
+// --- DROPPABLE KANBAN COLUMN ---
 function KanbanColumn({
   status,
   tasks,
@@ -195,8 +191,34 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
 
   return (
     <div>
-      <h1 className="text-3xl font-bold mb-2">{project.name}</h1>
+      {/* Container for the back arrow and title */}
+      <div className="flex items-center gap-4 mb-2">
+        {/* The "Go Back" Link */}
+        <Link
+          href="/"
+          className="text-slate-400 hover:text-slate-50 rounded-full p-2 transition-colors"
+          aria-label="Go back to projects"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M19 12H5"></path>
+            <polyline points="12 19 5 12 12 5"></polyline>
+          </svg>
+        </Link>
+        <h1 className="text-3xl font-bold">{project.name}</h1>
+      </div>
+
       <p className="text-slate-400 mb-8">{project.description}</p>
+
       <form onSubmit={handleCreateTask} className="flex gap-2 mb-8 max-w-sm">
         <Input
           value={newTaskTitle}
@@ -209,7 +231,6 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
       <DndContext onDragEnd={handleDragEnd}>
         <div className="flex gap-6">
           {columns.map((status) => (
-            // The key is here: ensure `onDeleteTask={handleDeleteTask}` exists
             <KanbanColumn
               key={status}
               status={status}
