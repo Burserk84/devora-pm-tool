@@ -59,6 +59,7 @@ model User {
   email     String    @unique
   name      String?
   password  String
+  title     String?
   
   // A user can be assigned to many tasks
   assignedTasks Task[] @relation("AssignedTasks")

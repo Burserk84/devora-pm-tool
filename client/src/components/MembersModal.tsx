@@ -87,6 +87,9 @@ export function MembersModal({
             >
               <div>
                 <p className="font-medium">{user.name}</p>
+                {user.title && (
+                  <p className="text-sm text-slate-400">{user.title}</p>
+                )}
                 <p className="text-sm text-slate-400">{user.email}</p>
               </div>
 

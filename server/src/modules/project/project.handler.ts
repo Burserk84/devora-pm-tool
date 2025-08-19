@@ -71,17 +71,17 @@ export const getProjectById = async (req: Request, res: Response) => {
     },
     include: {
       tasks: {
-        where: taskWhereClause, // Apply the dynamic filter here
+        where: taskWhereClause,
         include: {
           assignee: {
-            select: { id: true, name: true },
+            select: { id: true, name: true, title: true },
           },
         },
       },
       members: {
         include: {
           user: {
-            select: { id: true, name: true, email: true },
+            select: { id: true, name: true, email: true, title: true },
           },
         },
       },

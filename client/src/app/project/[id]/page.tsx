@@ -23,6 +23,11 @@ interface Task {
   title: string;
   content: string | null;
   status: "TODO" | "IN_PROGRESS" | "DONE";
+  assignee: {
+    id: string;
+    name: string;
+    title: string | null;
+  } | null;
 }
 interface Project {
   id: string;
@@ -79,6 +84,14 @@ function TaskCard({
             </svg>
           </button>
           <h3 className="font-semibold">{task.title}</h3>
+          {task.assignee && (
+            <div
+              title={task.assignee.name || ""}
+              className="h-6 w-6 rounded-full bg-slate-600 flex items-center justify-center text-xs font-bold"
+            >
+              {task.assignee.name?.charAt(0).toUpperCase()}
+            </div>
+          )}
         </div>
 
         {/* === RIGHT SIDE: Delete Button === */}
