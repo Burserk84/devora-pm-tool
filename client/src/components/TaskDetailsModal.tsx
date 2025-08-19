@@ -22,6 +22,7 @@ interface TaskDetailsModalProps {
   taskId: string | null;
   onClose: () => void;
   onTaskUpdate: () => void;
+  currentUserRole: "ADMIN" | "MEMBER" | undefined;
 }
 
 // Helper to format date for the input field
@@ -34,7 +35,9 @@ export function TaskDetailsModal({
   taskId,
   onClose,
   onTaskUpdate,
+  currentUserRole,
 }: TaskDetailsModalProps) {
+  const isAdmin = currentUserRole === "ADMIN";
   const [task, setTask] = useState<Task | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -131,6 +134,7 @@ export function TaskDetailsModal({
               type="date"
               value={dueDate}
               onChange={(e) => setDueDate(e.target.value)}
+              disabled={!isAdmin}
             />
           </div>
           <div>
@@ -144,6 +148,7 @@ export function TaskDetailsModal({
               id="assignee"
               value={assigneeId}
               onChange={(e) => setAssigneeId(e.target.value)}
+              disabled={!isAdmin}
               className="block w-full rounded-md border-slate-700 bg-slate-900 px-3 py-2 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-indigo-500"
             >
               <option value="">Unassigned</option>

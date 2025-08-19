@@ -57,3 +57,22 @@ export const updateTask = async (taskId: string, taskData: unknown) => {
   const response = await apiClient.put(`/tasks/${taskId}`, taskData);
   return response.data.data;
 };
+
+export const inviteUserToProject = async (projectId: string, email: string) => {
+  const response = await apiClient.post(`/projects/${projectId}/members`, {
+    email,
+  });
+  return response.data.data;
+};
+
+export const updateMemberRole = async (
+  projectId: string,
+  memberId: string,
+  role: "ADMIN" | "MEMBER"
+) => {
+  const response = await apiClient.patch(
+    `/projects/${projectId}/members/${memberId}`,
+    { role }
+  );
+  return response.data.data;
+};

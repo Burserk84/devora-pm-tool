@@ -16,6 +16,7 @@ import { SortableContext, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import Link from "next/link";
 import { TaskDetailsModal } from "@/components/TaskDetailsModal";
+import { MembersModal } from "@/components/MembersModal";
 
 interface Task {
   id: string;
@@ -99,7 +100,7 @@ function KanbanColumn({
   status,
   tasks,
   onDeleteTask,
-  onTaskClick, // <-- FIX #1: Accept the onTaskClick prop here
+  onTaskClick,
 }: {
   status: Task["status"];
   tasks: Task[];
@@ -131,7 +132,8 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
-  const { token } = useAuth();
+  const [isMembersModalOpen, setIsMembersModalOpen] = useState(false);
+  const { user: currentUser, token } = useAuth();
 
   const fetchProject = () => {
     if (token) {
@@ -207,6 +209,12 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
 
   if (!project) return <div>Loading board...</div>;
 
+  const currentUserRole = project.members.find(
+    (member) => member.user.id === currentUser?.id
+  )?.role;
+
+  const isAdmin = currentUserRole === "ADMIN";
+
   return (
     <div>
       {/* Container for the back arrow and title */}
@@ -233,18 +241,21 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
           </svg>
         </Link>
         <h1 className="text-3xl font-bold">{project.name}</h1>
+        <Button onClick={() => setIsMembersModalOpen(true)}>Share</Button>
       </div>
 
       <p className="text-slate-400 mb-8">{project.description}</p>
 
-      <form onSubmit={handleCreateTask} className="flex gap-2 mb-8 max-w-sm">
-        <Input
-          value={newTaskTitle}
-          onChange={(e) => setNewTaskTitle(e.target.value)}
-          placeholder="Add a new task..."
-        />
-        <Button type="submit">Add Task</Button>
-      </form>
+      {isAdmin && (
+        <form onSubmit={handleCreateTask} className="flex gap-2 mb-8 max-w-sm">
+          <Input
+            value={newTaskTitle}
+            onChange={(e) => setNewTaskTitle(e.target.value)}
+            placeholder="Add a new task..."
+          />
+          <Button type="submit">Add Task</Button>
+        </form>
+      )}
 
       <DndContext onDragEnd={handleDragEnd}>
         <div className="flex gap-6">
@@ -254,16 +265,24 @@ export default function ProjectPage({ params }: { params: { id: string } }) {
               status={status}
               tasks={tasks.filter((task) => task.status === status)}
               onDeleteTask={handleDeleteTask}
-              onTaskClick={(taskId) => setSelectedTaskId(taskId)} 
+              onTaskClick={(taskId) => setSelectedTaskId(taskId)}
             />
           ))}
         </div>
       </DndContext>
 
+      <MembersModal
+        project={project}
+        isOpen={isMembersModalOpen}
+        onClose={() => setIsMembersModalOpen(false)}
+        onMemberAdded={fetchProject}
+      />
+
       <TaskDetailsModal
         taskId={selectedTaskId}
         onClose={() => setSelectedTaskId(null)}
         onTaskUpdate={fetchProject}
+        currentUserRole={currentUserRole}
       />
     </div>
   );

@@ -1,20 +1,22 @@
 import { Request, Response } from "express";
 import prisma from "../../lib/prisma";
 
+// CREATE a task if the user is a member of the project
 export const createTask = async (req: Request, res: Response) => {
   const { title, description, projectId } = req.body;
 
-  const project = await prisma.project.findFirst({
+  // SECURITY CHECK: Verify user is a member of the project
+  const membership = await prisma.projectMembership.findFirst({
     where: {
-      id: projectId,
-      ownerId: req.user!.id,
+      projectId: projectId,
+      userId: req.user!.id,
     },
   });
 
-  if (!project) {
+  if (!membership) {
     return res
-      .status(404)
-      .json({ message: "Project not found or you do not have access." });
+      .status(403)
+      .json({ message: "Forbidden: You are not a member of this project." });
   }
 
   const task = await prisma.task.create({
@@ -24,90 +26,21 @@ export const createTask = async (req: Request, res: Response) => {
       projectId,
     },
   });
-
   res.status(201).json({ data: task });
 };
 
-export const getProjectById = async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const project = await prisma.project.findFirst({
-    where: {
-      id,
-      ownerId: req.user!.id,
-    },
-    include: {
-      tasks: true,
-    },
-  });
-
-  if (!project) {
-    return res.status(404).json({ message: "Project not found" });
-  }
-
-  res.json({ data: project });
-};
-
-export const updateTaskStatus = async (req: Request, res: Response) => {
-  const { id } = req.params;
-  const { status } = req.body;
-
-  // Security Check: Ensure the user owns the project this task belongs to.
-  const task = await prisma.task.findFirst({
-    where: {
-      id,
-      project: {
-        ownerId: req.user!.id,
-      },
-    },
-  });
-
-  if (!task) {
-    return res
-      .status(404)
-      .json({ message: "Task not found or you do not have access." });
-  }
-
-  const updatedTask = await prisma.task.update({
-    where: { id },
-    data: { status },
-  });
-
-  res.status(200).json({ data: updatedTask });
-};
-
-export const deleteTask = async (req: Request, res: Response) => {
-  const { id } = req.params;
-
-  // Security Check: Ensure the user owns the project this task belongs to.
-  const task = await prisma.task.findFirst({
-    where: {
-      id,
-      project: {
-        ownerId: req.user!.id,
-      },
-    },
-  });
-
-  if (!task) {
-    return res
-      .status(404)
-      .json({ message: "Task not found or you do not have access." });
-  }
-
-  await prisma.task.delete({ where: { id } });
-
-  res.status(204).send();
-};
-
+// GET a single task if the user is a member of the project
 export const getTaskById = async (req: Request, res: Response) => {
   const { id } = req.params;
 
-  // Security Check: Ensure the user owns the project this task belongs to
+  // SECURITY CHECK: Nested check to see if user is a member of the task's project
   const task = await prisma.task.findFirst({
     where: {
       id,
       project: {
-        ownerId: req.user!.id,
+        members: {
+          some: { userId: req.user!.id },
+        },
       },
     },
     include: {
@@ -126,16 +59,19 @@ export const getTaskById = async (req: Request, res: Response) => {
   res.status(200).json({ data: task });
 };
 
+// UPDATE a task if the user is a member of the project
 export const updateTask = async (req: Request, res: Response) => {
   const { id } = req.params;
   const { title, description, dueDate, assigneeId } = req.body;
 
-  // First, verify the user has access to this task
+  // SECURITY CHECK
   const taskToUpdate = await prisma.task.findFirst({
     where: {
       id,
       project: {
-        ownerId: req.user!.id,
+        members: {
+          some: { userId: req.user!.id },
+        },
       },
     },
   });
@@ -155,6 +91,61 @@ export const updateTask = async (req: Request, res: Response) => {
       assigneeId,
     },
   });
-
   res.status(200).json({ data: updatedTask });
+};
+
+// UPDATE a task's status if the user is a member of the project
+export const updateTaskStatus = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  // SECURITY CHECK
+  const task = await prisma.task.findFirst({
+    where: {
+      id,
+      project: {
+        members: {
+          some: { userId: req.user!.id },
+        },
+      },
+    },
+  });
+
+  if (!task) {
+    return res
+      .status(404)
+      .json({ message: "Task not found or you do not have access." });
+  }
+
+  const updatedTask = await prisma.task.update({
+    where: { id },
+    data: { status },
+  });
+  res.status(200).json({ data: updatedTask });
+};
+
+// DELETE a task if the user is a member of the project
+export const deleteTask = async (req: Request, res: Response) => {
+  const { id } = req.params;
+
+  // SECURITY CHECK
+  const task = await prisma.task.findFirst({
+    where: {
+      id,
+      project: {
+        members: {
+          some: { userId: req.user!.id },
+        },
+      },
+    },
+  });
+
+  if (!task) {
+    return res
+      .status(404)
+      .json({ message: "Task not found or you do not have access." });
+  }
+
+  await prisma.task.delete({ where: { id } });
+  res.status(204).send();
 };

@@ -8,10 +8,16 @@ import {
   ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
-import apiClient from "@/lib/apiClient"; // <-- IMPORT our new client
+import apiClient from "@/lib/apiClient";
+import { jwtDecode } from "jwt-decode";
+
+interface AuthUser {
+  id: string;
+}
 
 interface AuthContextType {
   token: string | null;
+  user: AuthUser | null;
   login: (data: unknown) => Promise<void>;
   register: (data: unknown) => Promise<void>;
   logout: () => void;
@@ -21,12 +27,15 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(null);
   const router = useRouter();
 
   useEffect(() => {
     const storedToken = localStorage.getItem("authToken");
     if (storedToken) {
       setToken(storedToken);
+      const decodedUser: { id: string } = jwtDecode(storedToken);
+      setUser({ id: decodedUser.id });
     }
   }, []);
 
@@ -36,6 +45,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { token } = response.data;
       setToken(token);
       localStorage.setItem("authToken", token);
+      const decodedUser: { id: string } = jwtDecode(token);
+      setUser({ id: decodedUser.id });
       router.push("/");
     } catch (error) {
       console.error("Login failed:", error);
@@ -49,6 +60,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { token } = response.data;
       setToken(token);
       localStorage.setItem("authToken", token);
+      const decodedUser: { id: string } = jwtDecode(token);
+      setUser({ id: decodedUser.id });
       router.push("/");
     } catch (error) {
       console.error("Registration failed:", error);
@@ -58,12 +71,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = () => {
     setToken(null);
+    setUser(null);
     localStorage.removeItem("authToken");
     router.push("/login");
   };
 
   return (
-    <AuthContext.Provider value={{ token, login, register, logout }}>
+    <AuthContext.Provider value={{ token, user, login, register, logout }}>
       {children}
     </AuthContext.Provider>
   );
