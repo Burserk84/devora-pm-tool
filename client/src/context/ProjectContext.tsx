@@ -11,11 +11,32 @@ import {
 import { getProjectById } from "@/services/projectService";
 
 // Define a comprehensive Project type
+interface Member {
+  role: "ADMIN" | "MEMBER";
+  user: {
+    id: string;
+    name: string | null;
+    email: string;
+    title: string | null;
+  };
+}
+
+interface Task {
+  id: string;
+  title: string;
+  status: "TODO" | "IN_PROGRESS" | "DONE";
+  assignee: {
+    id: string;
+    name: string | null;
+    title: string | null;
+  } | null;
+}
+
 interface Project {
   id: string;
   name: string;
-  tasks: unknown[]; // Use a more specific type if needed
-  members: unknown[]; // Use a more specific type if needed
+  tasks: Task[];
+  members: Member[];
 }
 
 interface ProjectContextType {
@@ -38,6 +59,7 @@ export const ProjectProvider = ({
 
   const fetchProject = useCallback(() => {
     setIsLoading(true);
+    // Use an empty object for filters since the pages will handle it
     getProjectById(projectId, {})
       .then((data) => setProject(data))
       .catch(console.error)

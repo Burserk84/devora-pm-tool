@@ -15,6 +15,7 @@ import { DndContext, DragEndEvent, useDroppable } from "@dnd-kit/core";
 import { SortableContext, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { TaskDetailsModal } from "@/components/TaskDetailsModal";
+import { TaskCardSkeleton } from "@/components/ui/TaskCardSkeleton";
 
 // --- TYPE DEFINITIONS ---
 interface Assignee {
@@ -28,8 +29,6 @@ interface Task {
   status: "TODO" | "IN_PROGRESS" | "DONE";
   assignee: Assignee | null;
 }
-
-// --- ADD THESE TWO LINES BACK ---
 const columns: Task["status"][] = ["TODO", "IN_PROGRESS", "DONE"];
 const columnMap = { TODO: "To-Do", IN_PROGRESS: "In Progress", DONE: "Done" };
 
@@ -46,7 +45,6 @@ function TaskCard({
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({ id: task.id });
   const style = { transform: CSS.Transform.toString(transform), transition };
-
   return (
     <div ref={setNodeRef} style={style} {...attributes}>
       <Card
@@ -97,7 +95,6 @@ function TaskCard({
     </div>
   );
 }
-
 function KanbanColumn({
   status,
   tasks,
@@ -137,14 +134,24 @@ export default function ProjectBoardPage() {
   const { project, isLoading, fetchProject } = useProject();
   const { user: currentUser } = useAuth();
 
+  // FIX: Add local state for tasks to enable optimistic UI updates
+  const [tasks, setTasks] = useState<Task[]>([]);
+
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [assigneeFilter, setAssigneeFilter] = useState("");
 
+  // FIX: Add a useEffect to sync the local tasks state with the ProjectContext
+  useEffect(() => {
+    if (project?.tasks) {
+      setTasks(project.tasks);
+    }
+  }, [project]);
+
+  // FIX: The filteredTasks now depend on the local 'tasks' state
   const filteredTasks = useMemo(() => {
-    if (!project?.tasks) return [];
-    return project.tasks.filter((task) => {
+    return tasks.filter((task) => {
       const searchMatch = task.title
         .toLowerCase()
         .includes(searchTerm.toLowerCase());
@@ -152,7 +159,7 @@ export default function ProjectBoardPage() {
         !assigneeFilter || task.assignee?.id === assigneeFilter;
       return searchMatch && assigneeMatch;
     });
-  }, [project?.tasks, searchTerm, assigneeFilter]);
+  }, [tasks, searchTerm, assigneeFilter]);
 
   const handleCreateTask = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -168,11 +175,14 @@ export default function ProjectBoardPage() {
 
   const handleDeleteTask = async (taskId: string) => {
     if (window.confirm("Are you sure you want to delete this task?")) {
+      const originalTasks = tasks;
+      setTasks((currentTasks) => currentTasks.filter((t) => t.id !== taskId));
       try {
         await deleteTask(taskId);
-        fetchProject();
+        // We don't need to call fetchProject() on success as the optimistic update is enough
       } catch (error) {
         console.error("Failed to delete task", error);
+        setTasks(originalTasks);
       }
     }
   };
@@ -182,7 +192,8 @@ export default function ProjectBoardPage() {
     if (!over) return;
     const activeId = active.id as string;
     const overId = over.id as string;
-    const activeTask = project?.tasks.find((t) => t.id === activeId);
+
+    const activeTask = tasks.find((t) => t.id === activeId);
     const overColumnStatus = columns.find((status) => status === overId);
     if (
       !activeTask ||
@@ -191,16 +202,40 @@ export default function ProjectBoardPage() {
     )
       return;
 
-    updateTaskStatus(activeId, overColumnStatus)
-      .then(() => fetchProject())
-      .catch((err) => {
-        console.error("Failed to update task", err);
-        fetchProject();
-      });
+    const originalTasks = tasks;
+    setTasks((currentTasks) =>
+      currentTasks.map((t) =>
+        t.id === activeId ? { ...t, status: overColumnStatus } : t
+      )
+    );
+
+    updateTaskStatus(activeId, overColumnStatus).catch((err) => {
+      console.error("Failed to update task status:", err);
+      setTasks(originalTasks);
+    });
   };
 
-  if (isLoading) return <div>Loading board...</div>;
-  if (!project) return <div>Project not found.</div>;
+  if (isLoading || !project) {
+    return (
+      <div>
+        <div className="flex gap-4 mb-8">
+          <div className="h-10 bg-slate-800 rounded-md flex-grow animate-pulse"></div>
+          <div className="h-10 bg-slate-800 rounded-md w-[200px] animate-pulse"></div>
+        </div>
+        <div className="flex gap-6">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="flex-1 bg-slate-800 p-4 rounded-lg">
+              <div className="h-6 w-1/3 bg-slate-700 rounded-md mb-4 animate-pulse"></div>
+              <div className="space-y-4">
+                <TaskCardSkeleton />
+                <TaskCardSkeleton />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   const currentUserRole = project.members.find(
     (member) => member.user.id === currentUser?.id
@@ -230,7 +265,6 @@ export default function ProjectBoardPage() {
           ))}
         </select>
       </div>
-
       {isAdmin && (
         <form onSubmit={handleCreateTask} className="flex gap-2 mb-8 max-w-sm">
           <Input
@@ -241,7 +275,6 @@ export default function ProjectBoardPage() {
           <Button type="submit">Add Task</Button>
         </form>
       )}
-
       <DndContext onDragEnd={handleDragEnd}>
         <div className="flex gap-6">
           {columns.map((status) => (
@@ -255,7 +288,6 @@ export default function ProjectBoardPage() {
           ))}
         </div>
       </DndContext>
-
       <TaskDetailsModal
         taskId={selectedTaskId}
         onClose={() => setSelectedTaskId(null)}

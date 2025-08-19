@@ -1,29 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { usePathname } from "next/navigation";
 import Link from "next/link";
-import { getProjectById } from "@/services/projectService";
-import { useAuth } from "@/context/AuthContext";
-import { Button } from "@/components/ui/Button";
-import { MembersModal } from "@/components/MembersModal";
 import { ProjectProvider, useProject } from "@/context/ProjectContext";
-
-// Type definitions needed for the layout
-interface Member {
-  role: "ADMIN" | "MEMBER";
-  user: {
-    id: string;
-    name: string | null;
-    email: string;
-    title: string | null;
-  };
-}
-interface Project {
-  id: string;
-  name: string;
-  members: Member[];
-}
+import { MembersModal } from "@/components/MembersModal";
+import { Button } from "@/components/ui/Button";
+import { useAuth } from "@/context/AuthContext";
 
 function ProjectNav({ projectId }: { projectId: string }) {
   const pathname = usePathname();
@@ -40,7 +23,7 @@ function ProjectNav({ projectId }: { projectId: string }) {
           key={link.href}
           href={link.href}
           className={`py-3 px-1 border-b-2 transition-colors ${
-            pathname === link.href
+            pathname.endsWith(link.href)
               ? "border-indigo-500 text-white"
               : "border-transparent text-slate-400 hover:text-slate-200"
           }`}
@@ -58,7 +41,14 @@ function ProjectLayoutContent({ children }: { children: React.ReactNode }) {
   const { user: currentUser } = useAuth();
 
   if (isLoading || !project) {
-    return <div>Loading project...</div>;
+    // A simple loading state for the shell
+    return (
+      <div>
+        <div className="h-9 w-1/2 bg-slate-700 rounded-md mb-4 animate-pulse"></div>
+        <div className="h-12 w-full bg-slate-800 rounded-md mb-8 animate-pulse"></div>
+        <div>Loading page...</div>
+      </div>
+    );
   }
 
   const currentUserRole = project.members.find(
@@ -72,7 +62,7 @@ function ProjectLayoutContent({ children }: { children: React.ReactNode }) {
         <div className="flex items-center gap-4">
           <Link
             href="/"
-            className="text-slate-400 hover:text-slate-50 rounded-full p-2 transition-colors"
+            className="text-slate-400 hover:text-slate-50 rounded-full p-2"
             aria-label="Go back to projects"
           >
             <svg

@@ -4,13 +4,14 @@ import { useProject } from "@/context/ProjectContext";
 import { Card } from "@/components/ui/Card";
 
 export default function MembersPage() {
-  const { project, isLoading } = useProject(); // <-- Get data from context
+  const { project, isLoading } = useProject();
 
   if (isLoading) {
+    // This loading state will likely not be seen much, as the layout has its own
     return <div>Loading members...</div>;
   }
 
-  if (!project) return null;
+  if (!project) return null; // The layout handles the "not found" case
 
   return (
     <div className="max-w-4xl">

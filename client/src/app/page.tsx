@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import Link from "next/link";
 import { Modal } from "@/components/ui/Modal";
 import { CreateProjectForm } from "@/components/CreateProjectForm";
+import { ProjectCardSkeleton } from "@/components/ui/ProjectCardSkeleton";
 
 // Define a type for our project data for type safety
 interface Project {
@@ -46,10 +47,6 @@ export default function DashboardPage() {
     }
   }, [token]);
 
-  if (isLoading) {
-    return <div>Loading projects...</div>;
-  }
-
   const handleDeleteProject = async (projectId: string) => {
     if (
       window.confirm(
@@ -67,6 +64,23 @@ export default function DashboardPage() {
       }
     }
   };
+
+  if (isLoading) {
+    return (
+      <div>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold">My Projects</h1>
+          <Button disabled>Create New Project</Button>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {/* Render 6 skeleton cards as placeholders */}
+          {Array.from({ length: 6 }).map((_, i) => (
+            <ProjectCardSkeleton key={i} />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div>
