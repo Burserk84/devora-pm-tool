@@ -1,14 +1,14 @@
-import apiClient from "@/lib/apiClient"; // <-- IMPORT our new client
+import apiClient from "@/lib/apiClient";
 
 export const getProjects = async () => {
   const response = await apiClient.get("/projects");
   return response.data.data;
 };
 
-// This function was missing from your code, so I've added it here.
+// Now accepts an optional filters object
 export const getProjectById = async (
   id: string,
-  filters: { search?: string; assigneeId?: string }
+  filters: { search?: string; assigneeId?: string } = {}
 ) => {
   const params = new URLSearchParams();
   if (filters.search) {
@@ -30,9 +30,10 @@ export const createProject = async (projectData: {
   return response.data.data;
 };
 
+// FIX: Changed 'content' to 'description'
 export const createTask = async (taskData: {
   title: string;
-  content?: string;
+  description?: string;
   projectId: string;
 }) => {
   const response = await apiClient.post("/tasks", taskData);
