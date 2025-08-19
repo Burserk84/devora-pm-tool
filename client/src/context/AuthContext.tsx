@@ -8,11 +8,14 @@ import {
   ReactNode,
 } from "react";
 import { useRouter } from "next/navigation";
-import apiClient from "@/lib/apiClient";
 import { jwtDecode } from "jwt-decode";
+import apiClient from "@/lib/apiClient";
 
+// FIX: Update the AuthUser interface
 interface AuthUser {
   id: string;
+  name: string | null;
+  email: string;
 }
 
 interface AuthContextType {
@@ -34,8 +37,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const storedToken = localStorage.getItem("authToken");
     if (storedToken) {
       setToken(storedToken);
-      const decodedUser: { id: string } = jwtDecode(storedToken);
-      setUser({ id: decodedUser.id });
+      // FIX: Decode the full user object
+      const decodedUser: AuthUser = jwtDecode(storedToken);
+      setUser(decodedUser);
     }
   }, []);
 
@@ -45,8 +49,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { token } = response.data;
       setToken(token);
       localStorage.setItem("authToken", token);
-      const decodedUser: { id: string } = jwtDecode(token);
-      setUser({ id: decodedUser.id });
+      // FIX: Decode the full user object
+      const decodedUser: AuthUser = jwtDecode(token);
+      setUser(decodedUser);
       router.push("/");
     } catch (error) {
       console.error("Login failed:", error);
@@ -60,8 +65,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { token } = response.data;
       setToken(token);
       localStorage.setItem("authToken", token);
-      const decodedUser: { id: string } = jwtDecode(token);
-      setUser({ id: decodedUser.id });
+      // FIX: Decode the full user object
+      const decodedUser: AuthUser = jwtDecode(token);
+      setUser(decodedUser);
       router.push("/");
     } catch (error) {
       console.error("Registration failed:", error);

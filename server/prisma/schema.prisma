@@ -68,6 +68,9 @@ model User {
 
   // A user can be a member of many projects
   projects    ProjectMembership[]
+
+  // A user can receive many notifications
+  notifications Notification[] @relation("Notifications")
 }
 
 // "Join Table" for the many-to-many relationship
@@ -80,4 +83,19 @@ model ProjectMembership {
 
   // This creates a composite primary key
   @@id([projectId, userId])
+}
+
+model Notification {
+  id          String   @id @default(cuid())
+  message     String   // The notification text, e.g., "Amirali assigned you to..."
+  read        Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  // The user who the notification is FOR
+  recipient   User     @relation("Notifications", fields: [recipientId], references: [id], onDelete: Cascade)
+  recipientId String
+
+  // Optional link to navigate to when clicked
+  // For example, /project/projectId/task/taskId
+  actionUrl   String?
 }

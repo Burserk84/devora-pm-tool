@@ -6,6 +6,7 @@ import projectRouter from "./modules/project/project.router";
 import { protect } from "./middlewares/auth.middleware";
 import taskRouter from "./modules/task/task.router";
 import userRouter from "./modules/user/user.router";
+import notificationRouter from "./modules/notification/notification.router";
 
 // Load environment variables
 dotenv.config();
@@ -27,6 +28,7 @@ app.use("/api/auth", authRouter);
 app.use("/api/projects", protect, projectRouter);
 app.use("/api/tasks", protect, taskRouter);
 app.use("/api/users", protect, userRouter);
+app.use("/api/notifications", protect, notificationRouter);
 
 app.listen(PORT, () => {
   console.log(`🚀 Server is running on http://localhost:${PORT}`);

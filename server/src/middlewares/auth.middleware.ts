@@ -9,6 +9,7 @@ declare global {
       user?: {
         id: string;
         email: string;
+        name: string | null;
       };
     }
   }
@@ -36,7 +37,7 @@ export const protect = async (
 
     const user = await prisma.user.findUnique({
       where: { id: payload.id },
-      select: { id: true, email: true }, // Select only non-sensitive fields
+      select: { id: true, email: true, name: true }, // Select only non-sensitive fields
     });
 
     if (!user) {

@@ -145,6 +145,7 @@ export const inviteUserToProject = async (req: Request, res: Response) => {
       .json({ message: "Forbidden: You must be an admin to invite users." });
   }
 
+  // --- THIS IS THE CRUCIAL PART THAT WAS LIKELY MISSING ---
   // 2. VALIDATION: Check if the user to be invited exists
   const userToInvite = await prisma.user.findUnique({
     where: { email: userToInviteEmail },
@@ -155,6 +156,7 @@ export const inviteUserToProject = async (req: Request, res: Response) => {
       .status(404)
       .json({ message: `User with email ${userToInviteEmail} not found.` });
   }
+  // --------------------------------------------------------
 
   // 3. VALIDATION: Check if the user is already a member
   const existingMembership = await prisma.projectMembership.findFirst({
@@ -170,18 +172,34 @@ export const inviteUserToProject = async (req: Request, res: Response) => {
       .json({ message: "User is already a member of this project." });
   }
 
+  // Find the project to get its name
+  const project = await prisma.project.findUnique({ where: { id: projectId } });
+  if (!project) {
+    return res.status(404).json({ message: "Project not found." });
+  }
+
   // 4. THE ACTION: Create the new membership
   const newMember = await prisma.projectMembership.create({
     data: {
       projectId,
       userId: userToInvite.id,
-      role: "MEMBER", // New users are always members by default
+      role: "MEMBER",
+    },
+  });
+
+  // 5. NOTIFICATION LOGIC
+  await prisma.notification.create({
+    data: {
+      message: `${req.user!.name || "Someone"} invited you to the project "${
+        project.name
+      }"`,
+      recipientId: userToInvite.id,
+      actionUrl: `/project/${projectId}`,
     },
   });
 
   res.status(201).json({ data: newMember });
 };
-
 export const updateMemberRole = async (req: Request, res: Response) => {
   const { id: projectId, memberId } = req.params;
   const { role } = req.body;

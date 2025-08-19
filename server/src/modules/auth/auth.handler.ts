@@ -12,7 +12,6 @@ export const register = async (req: Request, res: Response) => {
   }
 
   try {
-    // Check if user already exists
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
       return res
@@ -20,10 +19,8 @@ export const register = async (req: Request, res: Response) => {
         .json({ message: "User with this email already exists" });
     }
 
-    // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create the new user
     const user = await prisma.user.create({
       data: {
         email,
@@ -32,10 +29,12 @@ export const register = async (req: Request, res: Response) => {
       },
     });
 
-    // Create a JWT
-    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET as string, {
-      expiresIn: "1d", // Token expires in 1 day
-    });
+    // FIX: Add name and email to the token payload
+    const token = jwt.sign(
+      { id: user.id, name: user.name, email: user.email },
+      process.env.JWT_SECRET as string,
+      { expiresIn: "1d" }
+    );
 
     res.status(201).json({ token });
   } catch (error) {
@@ -52,22 +51,22 @@ export const login = async (req: Request, res: Response) => {
   }
 
   try {
-    // Find the user by email
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // Compare submitted password with stored hash
     const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // Create a JWT
-    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET as string, {
-      expiresIn: "1d",
-    });
+    // FIX: Add name and email to the token payload
+    const token = jwt.sign(
+      { id: user.id, name: user.name, email: user.email },
+      process.env.JWT_SECRET as string,
+      { expiresIn: "1d" }
+    );
 
     res.status(200).json({ token });
   } catch (error) {
