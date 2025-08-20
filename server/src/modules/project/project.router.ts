@@ -6,11 +6,13 @@ import {
   deleteProject,
   inviteUserToProject,
   updateMemberRole,
+  getProjectsSummary,
 } from "./project.handler";
 
 const projectRouter = Router();
 
 // Routes
+projectRouter.get("/summary", getProjectsSummary);
 projectRouter.get("/", getProjects);
 projectRouter.post("/", createProject);
 projectRouter.get("/:id", getProjectById);

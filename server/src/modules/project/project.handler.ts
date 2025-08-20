@@ -215,3 +215,27 @@ export const updateMemberRole = async (req: Request, res: Response) => {
 
   res.status(200).json({ data: updatedMembership });
 };
+
+// GET /api/projects/summary - Get a lightweight list of projects
+export const getProjectsSummary = async (req: Request, res: Response) => {
+  const projects = await prisma.project.findMany({
+    where: {
+      members: {
+        some: {
+          userId: req.user!.id,
+        },
+      },
+    },
+    // This is the key change: we are NOT including the tasks themselves.
+    // Instead, we are just getting a COUNT of the tasks.
+    include: {
+      _count: {
+        select: { tasks: true },
+      },
+    },
+    orderBy: {
+      createdAt: "desc",
+    },
+  });
+  res.status(200).json({ data: projects });
+};

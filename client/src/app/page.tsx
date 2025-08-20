@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/context/AuthContext";
 // FIX: Import 'deleteProject' here
-import { getProjects, deleteProject } from "@/services/projectService";
+import { getProjectsSummary, deleteProject } from "@/services/projectService";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import Link from "next/link";
@@ -12,14 +12,17 @@ import { CreateProjectForm } from "@/components/CreateProjectForm";
 import { ProjectCardSkeleton } from "@/components/ui/ProjectCardSkeleton";
 
 // Define a type for our project data for type safety
-interface Project {
+interface ProjectSummary {
   id: string;
   name: string;
   description: string | null;
+  _count: {
+    tasks: number;
+  };
 }
 
 export default function DashboardPage() {
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [projects, setProjects] = useState<ProjectSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { token } = useAuth();
@@ -27,7 +30,7 @@ export default function DashboardPage() {
   const fetchProjects = async () => {
     try {
       setIsLoading(true);
-      const projectsData = await getProjects();
+      const projectsData = await getProjectsSummary();
       setProjects(projectsData);
     } catch (error) {
       console.error("Failed to fetch projects", error);
@@ -99,6 +102,9 @@ export default function DashboardPage() {
                 <h2 className="text-xl font-semibold mb-2">{project.name}</h2>
                 <p className="text-slate-400 mb-4 h-12 overflow-hidden">
                   {project.description || "No description."}
+                </p>
+                <p className="text-sm text-slate-400">
+                  {project._count.tasks} tasks
                 </p>
               </div>
               <div className="flex gap-2 mt-4">

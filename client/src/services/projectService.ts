@@ -86,3 +86,8 @@ export const updateMemberRole = async (
   );
   return response.data.data;
 };
+
+export const getProjectsSummary = async () => {
+  const response = await apiClient.get("/projects/summary");
+  return response.data.data;
+};
