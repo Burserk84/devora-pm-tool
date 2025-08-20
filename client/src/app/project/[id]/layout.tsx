@@ -11,9 +11,11 @@ import { useAuth } from "@/context/AuthContext";
 function ProjectNav({ projectId }: { projectId: string }) {
   const pathname = usePathname();
   const baseProjectUrl = `/project/${projectId}`;
+
   const navLinks = [
     { href: baseProjectUrl, label: "Board" },
     { href: `${baseProjectUrl}/members`, label: "Members" },
+    { href: `${baseProjectUrl}/chat`, label: "Chat" },
   ];
 
   return (
@@ -46,7 +48,6 @@ function ProjectLayoutContent({ children }: { children: React.ReactNode }) {
       <div>
         <div className="h-9 w-1/2 bg-slate-700 rounded-md mb-4 animate-pulse"></div>
         <div className="h-12 w-full bg-slate-800 rounded-md mb-8 animate-pulse"></div>
-        <div>Loading page...</div>
       </div>
     );
   }
