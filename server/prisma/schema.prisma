@@ -52,6 +52,8 @@ model Project {
   
   // NEW: A project can have many members
   members     ProjectMembership[]
+  messages Message[]
+
 }
 
 model User {
@@ -72,6 +74,7 @@ model User {
 
   // A user can receive many notifications
   notifications Notification[] @relation("Notifications")
+  messages Message[]
 }
 
 // "Join Table" for the many-to-many relationship
@@ -99,4 +102,18 @@ model Notification {
   // Optional link to navigate to when clicked
   // For example, /project/projectId/task/taskId
   actionUrl   String?
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  content   String
+  createdAt DateTime @default(now())
+
+  // Relation to the User who sent the message
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId    String
+
+  // Relation to the Project the message belongs to
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  projectId String
 }
