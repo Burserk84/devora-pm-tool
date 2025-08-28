@@ -11,13 +11,7 @@ interface User {
   id: string;
   name: string;
 }
-interface Task {
-  id: string;
-  title: string;
-  description: string | null;
-  dueDate: string | null;
-  assigneeId: string | null;
-}
+
 interface TaskDetailsModalProps {
   taskId: string | null;
   onClose: () => void;
