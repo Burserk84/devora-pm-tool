@@ -281,16 +281,18 @@ export default function AdminPage() {
           <Card className="p-4">
             <ul className="space-y-3">
               {projects.map((project) => (
-                <li
-                  key={project.id}
-                  className="p-2 border-b border-slate-700 last:border-b-0 flex justify-between items-center"
-                >
+                <li key={project.id}>
                   <div>
-                    <p className="font-bold">{project.name}</p>
-                    <p className="text-sm text-slate-400">
-                      {project._count.members} Members • {project._count.tasks}{" "}
-                      Tasks
-                    </p>
+                    <Link
+                      href={`/project/${project.id}`}
+                      className="block p-2 border-b border-slate-700 last:border-b-0 hover:bg-slate-700 rounded-md"
+                    >
+                      <p className="font-bold">{project.name}</p>
+                      <p className="text-sm text-slate-400">
+                        {project._count.members} Members •{" "}
+                        {project._count.tasks} Tasks
+                      </p>
+                    </Link>
                   </div>
                   <Button
                     onClick={() => handleDeleteProject(project.id)}
