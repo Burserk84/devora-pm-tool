@@ -4,6 +4,7 @@ import cors from "cors";
 import { createServer } from "http";
 import { Server } from "socket.io";
 import prisma from "./lib/prisma";
+import { protect } from "./middlewares/auth.middleware";
 
 // Routers
 import authRouter from "./modules/auth/auth.router";
@@ -11,7 +12,7 @@ import projectRouter from "./modules/project/project.router";
 import taskRouter from "./modules/task/task.router";
 import userRouter from "./modules/user/user.router";
 import notificationRouter from "./modules/notification/notification.router";
-import { protect } from "./middlewares/auth.middleware";
+import adminRouter from "./modules/admin/admin.router";
 
 dotenv.config();
 
@@ -37,6 +38,7 @@ app.use("/api/projects", protect, projectRouter);
 app.use("/api/tasks", protect, taskRouter);
 app.use("/api/users", protect, userRouter);
 app.use("/api/notifications", protect, notificationRouter);
+app.use("/api/admin", protect, adminRouter);
 
 // --- REAL-TIME CHAT LOGIC ---
 io.on("connection", (socket) => {

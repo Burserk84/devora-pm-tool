@@ -5,7 +5,6 @@ import { useAuth } from "@/context/AuthContext";
 import { Button } from "@/components/ui/Button";
 import { Card } from "@/components/ui/Card";
 import { Input } from "@/components/ui/Input";
-import Link from "next/link";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -46,15 +45,6 @@ export default function LoginPage() {
             Login
           </Button>
         </form>
-        <p className="text-center text-sm mt-4">
-          Don&apos;t have an account?{" "}
-          <Link
-            href="/register"
-            className="font-medium text-indigo-400 hover:underline"
-          >
-            Register
-          </Link>
-        </p>
       </Card>
     </div>
   );

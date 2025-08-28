@@ -56,12 +56,18 @@ model Project {
 
 }
 
+enum UserRole {
+  SUPERADMIN
+  USER
+}
+
 model User {
   id        String    @id @default(cuid())
   email     String    @unique
   name      String?
   password  String
   title     String?
+  role      UserRole  @default(USER)
   
   // A user can be assigned to many tasks
   assignedTasks Task[] @relation("AssignedTasks")

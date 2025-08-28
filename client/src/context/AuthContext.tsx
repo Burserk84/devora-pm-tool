@@ -11,11 +11,11 @@ import { useRouter } from "next/navigation";
 import { jwtDecode } from "jwt-decode";
 import apiClient from "@/lib/apiClient";
 
-// FIX: Update the AuthUser interface
 interface AuthUser {
   id: string;
   name: string | null;
   email: string;
+  role: "SUPERADMIN" | "USER";
 }
 
 interface AuthContextType {
