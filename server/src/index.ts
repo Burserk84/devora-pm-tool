@@ -16,13 +16,19 @@ import adminRouter from "./modules/admin/admin.router";
 
 dotenv.config();
 
+if (!process.env.CLIENT_URL || !process.env.JWT_SECRET) {
+  console.error(
+    "FATAL ERROR: Missing required environment variables. Please check your .env file."
+  );
+  process.exit(1); 
+}
+
 const app = express();
 const httpServer = createServer(app);
 
-// FIX: Allow both development and production frontend URLs to connect
 const allowedOrigins = [
   "http://localhost:3000",
-  process.env.CLIENT_URL, // This should be https://app.devorastudio.ir in your .env file
+  process.env.CLIENT_URL, 
 ];
 
 const io = new Server(httpServer, {
