@@ -1,7 +1,8 @@
 import axios from "axios";
 
 const apiClient = axios.create({
-  baseURL: "http://localhost:5001/api",
+  // Use the environment variable for the production URL
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
 });
 
 // Use an interceptor to add the auth token to every request

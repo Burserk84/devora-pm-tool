@@ -1,4 +1,4 @@
-import express, { Request, Response } from "express";
+import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
 import { createServer } from "http";
@@ -17,11 +17,17 @@ import adminRouter from "./modules/admin/admin.router";
 dotenv.config();
 
 const app = express();
-const httpServer = createServer(app); // <-- Create an HTTP server
+const httpServer = createServer(app);
+
+// FIX: Allow both development and production frontend URLs to connect
+const allowedOrigins = [
+  "http://localhost:3000",
+  process.env.CLIENT_URL, // This should be https://app.devorastudio.ir in your .env file
+];
+
 const io = new Server(httpServer, {
-  // <-- Initialize Socket.IO server
   cors: {
-    origin: "http://localhost:3000",
+    origin: allowedOrigins,
     methods: ["GET", "POST"],
   },
 });
@@ -32,28 +38,25 @@ const PORT = process.env.PORT || 5001;
 app.use(cors());
 app.use(express.json());
 
-// API Routes
-app.use("/api/auth", authRouter);
-app.use("/api/projects", protect, projectRouter);
-app.use("/api/tasks", protect, taskRouter);
-app.use("/api/users", protect, userRouter);
-app.use("/api/notifications", protect, notificationRouter);
-app.use("/api/admin", protect, adminRouter);
+// FIX: Removed the redundant '/api' prefix from all routes
+app.use("/auth", authRouter);
+app.use("/projects", protect, projectRouter);
+app.use("/tasks", protect, taskRouter);
+app.use("/users", protect, userRouter);
+app.use("/notifications", protect, notificationRouter);
+app.use("/admin", protect, adminRouter);
 
-// --- REAL-TIME CHAT LOGIC ---
+// --- REAL-TIME CHAT LOGIC (No changes needed here) ---
 io.on("connection", (socket) => {
   console.log("🔌 A user connected:", socket.id);
 
-  // Event for a user to join a project-specific chat room
   socket.on("joinProject", (projectId) => {
     socket.join(projectId);
     console.log(`User ${socket.id} joined project room: ${projectId}`);
   });
 
-  // Event for a user sending a message
   socket.on("sendMessage", async ({ projectId, content, userId }) => {
     try {
-      // Save the message to the database
       const newMessage = await prisma.message.create({
         data: {
           content,
@@ -66,7 +69,6 @@ io.on("connection", (socket) => {
           },
         },
       });
-      // Broadcast the new message to everyone in the project room
       io.in(projectId).emit("receiveMessage", newMessage);
     } catch (error) {
       console.error("Failed to save or broadcast message", error);
@@ -78,7 +80,6 @@ io.on("connection", (socket) => {
   });
 });
 
-// We now listen on the httpServer, not the Express app
 httpServer.listen(PORT, () => {
   console.log(`🚀 Server is running on http://localhost:${PORT}`);
 });
