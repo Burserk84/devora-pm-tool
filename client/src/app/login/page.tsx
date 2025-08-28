@@ -17,7 +17,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex items-center justify-center h-full">
+    <div className="flex items-center justify-center h-screen">
       <Card className="w-full max-w-md">
         <h1 className="text-2xl font-bold mb-4 text-center">Sign In</h1>
         <form onSubmit={handleSubmit} className="space-y-4">

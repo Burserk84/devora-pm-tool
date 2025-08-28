@@ -9,6 +9,7 @@ import {
 } from "react";
 import { jwtDecode } from "jwt-decode";
 import apiClient from "@/lib/apiClient";
+import { useRouter } from "next/navigation";
 
 interface AuthUser {
   id: string;
@@ -32,6 +33,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     try {
@@ -57,7 +59,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       // FIX: Decode the full user object
       const decodedUser: AuthUser = jwtDecode(token);
       setUser(decodedUser);
-      router.push("/");
     } catch (error) {
       console.error("Login failed:", error);
       alert("Login failed. Please check your credentials.");
@@ -70,10 +71,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const { token } = response.data;
       setToken(token);
       localStorage.setItem("authToken", token);
-      // FIX: Decode the full user object
       const decodedUser: AuthUser = jwtDecode(token);
       setUser(decodedUser);
-      router.push("/");
     } catch (error) {
       console.error("Registration failed:", error);
       alert("Registration failed. Please try again.");
