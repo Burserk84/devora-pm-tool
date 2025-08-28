@@ -12,7 +12,7 @@ import {
   adminGetAllProjects,
   adminCreateUser,
 } from "@/services/adminService";
-import { adminCreateUserSchema } from "@/lib/schemas";
+import { adminCreateUserSchema, adminDeleteUser } from "@/lib/schemas";
 import Link from "next/link";
 import { AxiosError } from "axios";
 import { useAuth } from "@/context/AuthContext";
