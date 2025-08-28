@@ -5,7 +5,6 @@ import { Modal } from "./ui/Modal";
 import { Input } from "./ui/Input";
 import { Button } from "./ui/Button";
 import { getTaskById, getUsers, updateTask } from "@/services/projectService";
-import type { Task } from "@/types"; // <-- IMPORT a single source of truth
 
 interface User {
   id: string;
