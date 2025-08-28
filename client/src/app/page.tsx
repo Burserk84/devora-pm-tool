@@ -1,8 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
-// FIX: Import 'deleteProject' here
 import { getProjectsSummary, deleteProject } from "@/services/projectService";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
@@ -10,16 +9,7 @@ import Link from "next/link";
 import { Modal } from "@/components/ui/Modal";
 import { CreateProjectForm } from "@/components/CreateProjectForm";
 import { ProjectCardSkeleton } from "@/components/ui/ProjectCardSkeleton";
-
-// Define a type for our project data for type safety
-interface ProjectSummary {
-  id: string;
-  name: string;
-  description: string | null;
-  _count: {
-    tasks: number;
-  };
-}
+import type { ProjectSummary } from "@/types";
 
 export default function DashboardPage() {
   const [projects, setProjects] = useState<ProjectSummary[]>([]);
@@ -44,12 +34,6 @@ export default function DashboardPage() {
     fetchProjects();
   };
 
-  useEffect(() => {
-    if (token) {
-      fetchProjects();
-    }
-  }, [token]);
-
   const handleDeleteProject = async (projectId: string) => {
     if (
       window.confirm(
@@ -68,6 +52,12 @@ export default function DashboardPage() {
     }
   };
 
+  useEffect(() => {
+    if (token) {
+      fetchProjects();
+    }
+  }, [token]);
+
   if (isLoading) {
     return (
       <div>
@@ -76,7 +66,6 @@ export default function DashboardPage() {
           <Button disabled>Create New Project</Button>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {/* Render 6 skeleton cards as placeholders */}
           {Array.from({ length: 6 }).map((_, i) => (
             <ProjectCardSkeleton key={i} />
           ))}
@@ -91,7 +80,6 @@ export default function DashboardPage() {
         <h1 className="text-3xl font-bold">My Projects</h1>
         <Button onClick={() => setIsModalOpen(true)}>Create New Project</Button>
       </div>
-
       {projects.length === 0 ? (
         <p>You don&apos;t have any projects yet. Create one to get started!</p>
       ) : (

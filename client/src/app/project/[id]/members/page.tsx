@@ -2,16 +2,34 @@
 
 import { useProject } from "@/context/ProjectContext";
 import { Card } from "@/components/ui/Card";
+import type { Member } from "@/types"; 
 
 export default function MembersPage() {
   const { project, isLoading } = useProject();
 
   if (isLoading) {
-    // This loading state will likely not be seen much, as the layout has its own
-    return <div>Loading members...</div>;
+    return (
+      <div className="max-w-4xl">
+        <div className="h-8 w-1/2 bg-slate-700 rounded-md mb-6 animate-pulse"></div>
+        <div className="space-y-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Card
+              key={i}
+              className="p-4 flex justify-between items-center animate-pulse"
+            >
+              <div>
+                <div className="h-5 w-32 bg-slate-700 rounded-md"></div>
+                <div className="h-4 w-48 bg-slate-700 rounded-md mt-2"></div>
+              </div>
+              <div className="h-6 w-20 bg-slate-700 rounded-full"></div>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
   }
 
-  if (!project) return null; // The layout handles the "not found" case
+  if (!project) return null;
 
   return (
     <div className="max-w-4xl">
@@ -19,7 +37,7 @@ export default function MembersPage() {
         Project Members ({project.members.length})
       </h2>
       <div className="space-y-4">
-        {project.members.map(({ user, role }) => (
+        {project.members.map(({ user, role }: Member) => (
           <Card key={user.id} className="p-4 flex justify-between items-center">
             <div>
               <p className="font-bold text-lg">{user.name}</p>

@@ -4,22 +4,14 @@ import { useState } from "react";
 import { Modal } from "./ui/Modal";
 import { Input } from "./ui/Input";
 import { Button } from "./ui/Button";
-import { inviteUserToProject } from "@/services/projectService";
+import {
+  inviteUserToProject,
+  updateMemberRole,
+} from "@/services/projectService";
 import { useAuth } from "@/context/AuthContext";
+import type { Project, Member } from "@/types";
+import { AxiosError } from "axios";
 
-// Define the types for the props
-interface Member {
-  role: "ADMIN" | "MEMBER";
-  user: {
-    id: string;
-    name: string;
-    email: string;
-  };
-}
-interface Project {
-  id: string;
-  members: Member[];
-}
 interface MembersModalProps {
   project: Project | null;
   isOpen: boolean;
@@ -47,10 +39,13 @@ export function MembersModal({
     try {
       await inviteUserToProject(project.id, email);
       setEmail("");
-      onMemberAdded(); // Tell the parent to refresh the project data
-    } catch (err: unknown) {
-      // Display the error message from the API
-      setError(err.response?.data?.message || "Failed to send invitation.");
+      onMemberAdded();
+    } catch (err) {
+      let errorMessage = "Failed to send invitation.";
+      if (err instanceof AxiosError) {
+        errorMessage = err.response?.data?.message || errorMessage;
+      }
+      setError(errorMessage);
     } finally {
       setIsInviting(false);
     }
@@ -63,13 +58,16 @@ export function MembersModal({
     if (!project) return;
     try {
       await updateMemberRole(project.id, memberId, newRole);
-      onMemberAdded(); // Refresh the project data
-    } catch (err: unknown) {
-      alert(err.response?.data?.message || "Failed to update role.");
+      onMemberAdded();
+    } catch (err) {
+      let errorMessage = "Failed to update role.";
+      if (err instanceof AxiosError) {
+        errorMessage = err.response?.data?.message || errorMessage;
+      }
+      alert(errorMessage);
     }
   };
 
-  // Determine if the current user is an admin of this project
   const currentUserMembership = project?.members.find(
     (m) => m.user.id === currentUser?.id
   );
@@ -80,7 +78,7 @@ export function MembersModal({
       <div className="mb-6">
         <h3 className="font-semibold mb-2">Project Members</h3>
         <ul className="space-y-2">
-          {project?.members.map(({ user, role }) => (
+          {project?.members.map(({ user, role }: Member) => (
             <li
               key={user.id}
               className="flex justify-between items-center bg-slate-700 p-2 rounded-md"
@@ -90,10 +88,7 @@ export function MembersModal({
                 {user.title && (
                   <p className="text-sm text-slate-400">{user.title}</p>
                 )}
-                <p className="text-sm text-slate-400">{user.email}</p>
               </div>
-
-              {/* The new role selector */}
               <select
                 value={role}
                 onChange={(e) =>
@@ -112,8 +107,6 @@ export function MembersModal({
           ))}
         </ul>
       </div>
-
-      {/* Conditionally render the invite form only for admins */}
       {isAdmin && (
         <div>
           <h3 className="font-semibold mb-2">Invite New Member</h3>

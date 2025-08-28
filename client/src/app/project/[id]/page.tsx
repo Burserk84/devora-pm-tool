@@ -16,19 +16,9 @@ import { SortableContext, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { TaskDetailsModal } from "@/components/TaskDetailsModal";
 import { TaskCardSkeleton } from "@/components/ui/TaskCardSkeleton";
+import type { Task } from "@/types"; // <-- IMPORT a single source of truth
 
-// --- TYPE DEFINITIONS ---
-interface Assignee {
-  id: string;
-  name: string | null;
-  title: string | null;
-}
-interface Task {
-  id: string;
-  title: string;
-  status: "TODO" | "IN_PROGRESS" | "DONE";
-  assignee: Assignee | null;
-}
+// --- CONSTANTS ---
 const columns: Task["status"][] = ["TODO", "IN_PROGRESS", "DONE"];
 const columnMap = { TODO: "To-Do", IN_PROGRESS: "In Progress", DONE: "Done" };
 
@@ -133,23 +123,18 @@ function KanbanColumn({
 export default function ProjectBoardPage() {
   const { project, isLoading, fetchProject } = useProject();
   const { user: currentUser } = useAuth();
-
-  // FIX: Add local state for tasks to enable optimistic UI updates
   const [tasks, setTasks] = useState<Task[]>([]);
-
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [assigneeFilter, setAssigneeFilter] = useState("");
 
-  // FIX: Add a useEffect to sync the local tasks state with the ProjectContext
   useEffect(() => {
     if (project?.tasks) {
       setTasks(project.tasks);
     }
   }, [project]);
 
-  // FIX: The filteredTasks now depend on the local 'tasks' state
   const filteredTasks = useMemo(() => {
     return tasks.filter((task) => {
       const searchMatch = task.title
@@ -179,7 +164,6 @@ export default function ProjectBoardPage() {
       setTasks((currentTasks) => currentTasks.filter((t) => t.id !== taskId));
       try {
         await deleteTask(taskId);
-        // We don't need to call fetchProject() on success as the optimistic update is enough
       } catch (error) {
         console.error("Failed to delete task", error);
         setTasks(originalTasks);
@@ -192,7 +176,6 @@ export default function ProjectBoardPage() {
     if (!over) return;
     const activeId = active.id as string;
     const overId = over.id as string;
-
     const activeTask = tasks.find((t) => t.id === activeId);
     const overColumnStatus = columns.find((status) => status === overId);
     if (
@@ -201,21 +184,19 @@ export default function ProjectBoardPage() {
       activeTask.status === overColumnStatus
     )
       return;
-
     const originalTasks = tasks;
     setTasks((currentTasks) =>
       currentTasks.map((t) =>
         t.id === activeId ? { ...t, status: overColumnStatus } : t
       )
     );
-
     updateTaskStatus(activeId, overColumnStatus).catch((err) => {
       console.error("Failed to update task status:", err);
       setTasks(originalTasks);
     });
   };
 
-  if (isLoading || !project) {
+  if (isLoading) {
     return (
       <div>
         <div className="flex gap-4 mb-8">
@@ -236,6 +217,8 @@ export default function ProjectBoardPage() {
       </div>
     );
   }
+
+  if (!project) return null;
 
   const currentUserRole = project.members.find(
     (member) => member.user.id === currentUser?.id

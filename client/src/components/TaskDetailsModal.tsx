@@ -5,13 +5,12 @@ import { Modal } from "./ui/Modal";
 import { Input } from "./ui/Input";
 import { Button } from "./ui/Button";
 import { getTaskById, getUsers, updateTask } from "@/services/projectService";
+import type { Task } from "@/types"; // <-- IMPORT a single source of truth
 
-// Define types for the data we'll be handling
 interface User {
   id: string;
-  name: string;
+  name: string | null;
 }
-
 interface TaskDetailsModalProps {
   taskId: string | null;
   onClose: () => void;
@@ -19,7 +18,6 @@ interface TaskDetailsModalProps {
   currentUserRole: "ADMIN" | "MEMBER" | undefined;
 }
 
-// Helper to format date for the input field
 const formatDateForInput = (dateString: string | null) => {
   if (!dateString) return "";
   return new Date(dateString).toISOString().split("T")[0];
@@ -31,11 +29,8 @@ export function TaskDetailsModal({
   onTaskUpdate,
   currentUserRole,
 }: TaskDetailsModalProps) {
-  const isAdmin = currentUserRole === "ADMIN";
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-
-  // State for editable form fields
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
@@ -44,12 +39,9 @@ export function TaskDetailsModal({
   useEffect(() => {
     if (taskId) {
       setIsLoading(true);
-      // Fetch both task details and user list concurrently
       Promise.all([getTaskById(taskId), getUsers()])
         .then(([taskData, usersData]) => {
-          setTask(taskData);
           setUsers(usersData);
-          // Populate form fields with fetched data
           setTitle(taskData.title || "");
           setDescription(taskData.description || "");
           setDueDate(formatDateForInput(taskData.dueDate));
@@ -70,14 +62,15 @@ export function TaskDetailsModal({
         dueDate,
         assigneeId: assigneeId || null,
       });
-      onTaskUpdate(); // Tell the board to refresh
-      onClose(); // Close the modal
+      onTaskUpdate();
+      onClose();
     } catch (error) {
       console.error("Failed to update task", error);
       alert("Failed to save changes.");
     }
   };
 
+  const isAdmin = currentUserRole === "ADMIN";
   const isOpen = !!taskId;
 
   return (
@@ -141,8 +134,8 @@ export function TaskDetailsModal({
               id="assignee"
               value={assigneeId}
               onChange={(e) => setAssigneeId(e.target.value)}
+              className="block w-full rounded-md border-slate-700 bg-slate-900 px-3 py-2 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-indigo-500 disabled:opacity-70 disabled:cursor-not-allowed"
               disabled={!isAdmin}
-              className="block w-full rounded-md border-slate-700 bg-slate-900 px-3 py-2 placeholder:text-slate-400 focus:border-indigo-500 focus:ring-indigo-500"
             >
               <option value="">Unassigned</option>
               {users.map((user) => (
