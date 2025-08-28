@@ -75,3 +75,21 @@ export const deleteUser = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Failed to delete user." });
   }
 };
+
+export const deleteProject = async (req: Request, res: Response) => {
+  const { id: projectId } = req.params;
+
+  try {
+    // Use a transaction to ensure all related data is deleted before the project itself
+    await prisma.$transaction([
+      prisma.message.deleteMany({ where: { projectId } }),
+      prisma.task.deleteMany({ where: { projectId } }),
+      prisma.projectMembership.deleteMany({ where: { projectId } }),
+      prisma.project.delete({ where: { id: projectId } }),
+    ]);
+    res.status(204).send();
+  } catch (error) {
+    console.error("Failed to delete project", error);
+    res.status(500).json({ message: "Failed to delete project." });
+  }
+};

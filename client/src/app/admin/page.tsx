@@ -12,6 +12,7 @@ import {
   adminGetAllProjects,
   adminCreateUser,
   adminDeleteUser,
+  adminDeleteProject,
 } from "@/services/adminService";
 import { adminCreateUserSchema } from "@/lib/schemas";
 import Link from "next/link";
@@ -105,6 +106,25 @@ export default function AdminPage() {
       } catch (error) {
         console.error("Failed to delete user", error);
         alert("Could not delete user.");
+      }
+    }
+  };
+
+  const handleDeleteProject = async (projectId: string) => {
+    if (
+      window.confirm(
+        "Are you sure you want to permanently delete this project and all its data (members, tasks, messages)? This cannot be undone."
+      )
+    ) {
+      try {
+        await adminDeleteProject(projectId);
+        // Refresh the list by filtering out the deleted project
+        setProjects((currentProjects) =>
+          currentProjects.filter((p) => p.id !== projectId)
+        );
+      } catch (error) {
+        console.error("Failed to delete project", error);
+        alert("Could not delete project.");
       }
     }
   };
@@ -261,17 +281,23 @@ export default function AdminPage() {
           <Card className="p-4">
             <ul className="space-y-3">
               {projects.map((project) => (
-                <li key={project.id}>
-                  <Link
-                    href={`/project/${project.id}`}
-                    className="block p-2 border-b border-slate-700 last:border-b-0 hover:bg-slate-700 rounded-md"
-                  >
+                <li
+                  key={project.id}
+                  className="p-2 border-b border-slate-700 last:border-b-0 flex justify-between items-center"
+                >
+                  <div>
                     <p className="font-bold">{project.name}</p>
                     <p className="text-sm text-slate-400">
                       {project._count.members} Members • {project._count.tasks}{" "}
                       Tasks
                     </p>
-                  </Link>
+                  </div>
+                  <Button
+                    onClick={() => handleDeleteProject(project.id)}
+                    className="bg-red-800 hover:bg-red-700"
+                  >
+                    Delete
+                  </Button>
                 </li>
               ))}
             </ul>
