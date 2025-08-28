@@ -14,6 +14,7 @@ import {
 } from "@/services/adminService";
 import { adminCreateUserSchema } from "@/lib/schemas";
 import Link from "next/link";
+import { AxiosError } from "axios";
 
 // --- TYPE DEFINITIONS ---
 interface User {
@@ -76,12 +77,17 @@ export default function AdminPage() {
       });
       reset();
       fetchData();
-    } catch (error: unknown) {
+    } catch (error) {
       console.error("Failed to create user", error);
-      setFormMessage({
-        type: "error",
-        text: error.response?.data?.message || "Failed to create user.",
-      });
+
+      let errorMessage = "An unexpected error occurred.";
+
+      if (error instanceof AxiosError) {
+        errorMessage =
+          error.response?.data?.message || "Failed to create user.";
+      }
+
+      setFormMessage({ type: "error", text: errorMessage });
     }
   };
 
