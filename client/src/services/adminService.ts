@@ -22,3 +22,7 @@ export const adminGetAllProjects = async () => {
   const response = await apiClient.get("/admin/projects");
   return response.data.data;
 };
+
+export const adminDeleteUser = async (userId: string) => {
+  await apiClient.delete(`/admin/users/${userId}`);
+};

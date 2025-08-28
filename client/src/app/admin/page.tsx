@@ -15,6 +15,7 @@ import {
 import { adminCreateUserSchema } from "@/lib/schemas";
 import Link from "next/link";
 import { AxiosError } from "axios";
+import { useAuth } from "@/context/AuthContext";
 
 // --- TYPE DEFINITIONS ---
 interface User {
@@ -43,6 +44,7 @@ export default function AdminPage() {
     type: "success" | "error";
     text: string;
   } | null>(null);
+  const { user: currentUser } = useAuth();
 
   const {
     register,
@@ -88,6 +90,21 @@ export default function AdminPage() {
       }
 
       setFormMessage({ type: "error", text: errorMessage });
+    }
+  };
+
+  const handleDeleteUser = async (userId: string) => {
+    if (
+      window.confirm("Are you sure you want to permanently delete this user?")
+    ) {
+      try {
+        await adminDeleteUser(userId);
+        // Refresh the list by filtering out the deleted user
+        setUsers((currentUsers) => currentUsers.filter((u) => u.id !== userId));
+      } catch (error) {
+        console.error("Failed to delete user", error);
+        alert("Could not delete user.");
+      }
     }
   };
 
@@ -176,6 +193,7 @@ export default function AdminPage() {
                 className="mt-1"
               />
             </div>
+
             <div className="flex items-center justify-end gap-4 pt-2">
               {formMessage && (
                 <p
@@ -209,18 +227,27 @@ export default function AdminPage() {
                   key={user.id}
                   className="p-2 border-b border-slate-700 last:border-b-0"
                 >
-                  <p className="font-bold">
-                    {user.name}{" "}
-                    <span className="text-xs bg-slate-600 text-slate-300 px-2 py-1 rounded-full">
-                      {user.role}
-                    </span>
-                  </p>
-                  <p className="text-sm text-slate-400">{user.email}</p>
-                  {user.title && (
-                    <p className="text-sm text-slate-500 italic mt-1">
-                      {user.title}
+                  <div>
+                    <p className="font-bold">
+                      {user.name}{" "}
+                      <span className="text-xs bg-slate-600 text-slate-300 px-2 py-1 rounded-full">
+                        {user.role}
+                      </span>
                     </p>
-                  )}
+                    <p className="text-sm text-slate-400">{user.email}</p>
+                    {user.title && (
+                      <p className="text-sm text-slate-500 italic mt-1">
+                        {user.title}
+                      </p>
+                    )}
+                  </div>
+                  <Button
+                    onClick={() => handleDeleteUser(user.id)}
+                    disabled={user.id === currentUser?.id} // Disable button for your own account
+                    className="bg-red-800 hover:bg-red-700 disabled:bg-slate-600 disabled:cursor-not-allowed"
+                  >
+                    Delete
+                  </Button>
                 </li>
               ))}
             </ul>

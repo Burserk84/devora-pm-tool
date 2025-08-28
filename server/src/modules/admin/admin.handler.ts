@@ -51,3 +51,27 @@ export const getAllProjects = async (req: Request, res: Response) => {
   });
   res.status(200).json({ data: projects });
 };
+
+export const deleteUser = async (req: Request, res: Response) => {
+  const { id: userIdToDelete } = req.params;
+
+  // Safety Check: Prevent a superadmin from deleting themselves
+  if (userIdToDelete === req.user!.id) {
+    return res
+      .status(400)
+      .json({ message: "You cannot delete your own superadmin account." });
+  }
+
+  try {
+    // Prisma's 'onDelete: Cascade' will handle cleanup of related memberships, messages, etc.
+    await prisma.user.delete({
+      where: {
+        id: userIdToDelete,
+      },
+    });
+    res.status(204).send();
+  } catch (error) {
+    console.error("Failed to delete user", error);
+    res.status(500).json({ message: "Failed to delete user." });
+  }
+};
