@@ -22,22 +22,19 @@ export const SocketProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     if (token) {
-      // If we have a token, establish a connection
       const newSocket = io("http://localhost:5001");
       setSocket(newSocket);
-
-      // Clean up the connection when the component unmounts or token changes
       return () => {
         newSocket.disconnect();
       };
     } else {
-      // If no token, disconnect any existing socket
       if (socket) {
         socket.disconnect();
         setSocket(null);
       }
     }
-  }, [token]);
+    // Add 'socket' to the dependency array here
+  }, [token, socket]);
 
   return (
     <SocketContext.Provider value={{ socket }}>

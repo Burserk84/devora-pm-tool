@@ -38,7 +38,6 @@ export function TaskDetailsModal({
   currentUserRole,
 }: TaskDetailsModalProps) {
   const isAdmin = currentUserRole === "ADMIN";
-  const [task, setTask] = useState<Task | null>(null);
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
