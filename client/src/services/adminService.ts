@@ -12,3 +12,13 @@ export const adminCreateUser = async (userData: NewUserData) => {
   const response = await apiClient.post("/admin/users", userData);
   return response.data.data;
 };
+
+export const adminGetAllUsers = async () => {
+  const response = await apiClient.get("/admin/users");
+  return response.data.data;
+};
+
+export const adminGetAllProjects = async () => {
+  const response = await apiClient.get("/admin/projects");
+  return response.data.data;
+};

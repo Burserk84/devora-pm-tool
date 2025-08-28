@@ -24,3 +24,30 @@ export const createUser = async (req: Request, res: Response) => {
   });
   res.status(201).json({ data: user });
 };
+
+// GET all users in the system
+export const getAllUsers = async (req: Request, res: Response) => {
+  const users = await prisma.user.findMany({
+    select: {
+      id: true,
+      name: true,
+      email: true,
+      title: true,
+      role: true,
+      createdAt: true,
+    },
+  });
+  res.status(200).json({ data: users });
+};
+
+// GET all projects in the system
+export const getAllProjects = async (req: Request, res: Response) => {
+  const projects = await prisma.project.findMany({
+    include: {
+      _count: {
+        select: { tasks: true, members: true },
+      },
+    },
+  });
+  res.status(200).json({ data: projects });
+};

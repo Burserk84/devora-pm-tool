@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { usePathname } from "next/navigation";
+import { useState, useEffect } from "react";
+import { usePathname, useParams } from "next/navigation";
 import Link from "next/link";
 import { ProjectProvider, useProject } from "@/context/ProjectContext";
 import { MembersModal } from "@/components/MembersModal";
@@ -101,13 +101,14 @@ function ProjectLayoutContent({ children }: { children: React.ReactNode }) {
 
 export default function ProjectLayout({
   children,
-  params,
 }: {
   children: React.ReactNode;
-  params: { id: string };
 }) {
+  const params = useParams();
+  const projectId = params.id as string; 
+
   return (
-    <ProjectProvider projectId={params.id}>
+    <ProjectProvider projectId={projectId}>
       <ProjectLayoutContent>{children}</ProjectLayoutContent>
     </ProjectProvider>
   );

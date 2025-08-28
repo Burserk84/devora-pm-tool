@@ -47,15 +47,21 @@ export const createProject = async (req: Request, res: Response) => {
 export const getProjectById = async (req: Request, res: Response) => {
   const { id } = req.params;
 
-  const project = await prisma.project.findFirst({
-    where: {
-      id,
-      members: {
-        some: {
-          userId: req.user!.id,
-        },
+  const whereClause: any = { id };
+
+  // If the user is NOT a superadmin, enforce the membership check
+  if (req.user?.role !== "SUPERADMIN") {
+    whereClause.members = {
+      some: {
+        userId: req.user!.id,
       },
-    },
+    };
+  }
+  // If the user IS a superadmin, the 'whereClause' will only contain the project 'id',
+  // bypassing the membership requirement.
+
+  const project = await prisma.project.findFirst({
+    where: whereClause,
     include: {
       tasks: {
         include: {
