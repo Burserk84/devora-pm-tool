@@ -21,7 +21,7 @@ const httpServer = createServer(app); // <-- Create an HTTP server
 const io = new Server(httpServer, {
   // <-- Initialize Socket.IO server
   cors: {
-    origin: "http://localhost:3002",
+    origin: "http://localhost:3000",
     methods: ["GET", "POST"],
   },
 });
