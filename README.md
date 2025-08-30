@@ -1,7 +1,7 @@
 ---
-# Devora - Full-Stack Project Management Tool
+# AuraSync - Full-Stack Project Management Tool
 
-Devora is a complete, full-stack project management application inspired by tools like Trello and Asana. It allows users to manage projects, organize tasks in an interactive Kanban board, and collaborate with team members in real-time. This project was built from scratch to demonstrate a wide range of modern web development skills.
+AuraSync is a complete, full-stack project management application inspired by tools like Trello and Asana. It allows users to manage projects, organize tasks in an interactive Kanban board, and collaborate with team members in real-time. This project was built from scratch to demonstrate a wide range of modern web development skills.
 ---
 
 ## Features
@@ -49,8 +49,8 @@ To run this project locally, you will need Node.js, npm, and Docker installed.
 ### 1\. Clone the Repository
 
 ```bash
-git clone https://github.com/your-username/devora-pm-tool.git
-cd devora-pm-tool
+git clone https://github.com/your-username/AuraSync-pm-tool.git
+cd AuraSync-pm-tool
 ```
 
 ### 2\. Setup Backend
@@ -66,7 +66,7 @@ Create a `.env` file in the `/server` directory and add the following variables:
 
 ```
 # .env
-DATABASE_URL="postgresql://devora_user:devora_password@localhost:5432/devora_db"
+DATABASE_URL="postgresql://AuraSync_user:AuraSync_password@localhost:5432/AuraSync_db"
 JWT_SECRET="your_super_secret_and_long_random_string"
 PORT=5001
 ```
@@ -82,7 +82,7 @@ npm install
 
 ### 4\. Start the Database
 
-From the **root** `devora-pm-tool/` directory, start the PostgreSQL database using Docker.
+From the **root** `AuraSync-pm-tool/` directory, start the PostgreSQL database using Docker.
 
 ```bash
 docker-compose up -d
