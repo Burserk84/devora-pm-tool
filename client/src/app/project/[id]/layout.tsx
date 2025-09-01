@@ -1,12 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState,useEffect } from "react";
 import { usePathname, useParams } from "next/navigation";
 import Link from "next/link";
 import { ProjectProvider, useProject } from "@/context/ProjectContext";
 import { MembersModal } from "@/components/MembersModal";
 import { Button } from "@/components/ui/Button";
 import { useAuth } from "@/context/AuthContext";
+import { useSocket } from "@/context/SocketContext";
 
 function ProjectNav({ projectId }: { projectId: string }) {
   const pathname = usePathname();
@@ -40,6 +41,24 @@ function ProjectLayoutContent({ children }: { children: React.ReactNode }) {
   const { project, isLoading, fetchProject } = useProject();
   const [isMembersModalOpen, setIsMembersModalOpen] = useState(false);
   const { user: currentUser } = useAuth();
+  const { socket } = useSocket();
+  const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
+
+  useEffect(() => {
+    if (socket && project && currentUser) {
+      socket.emit("joinProject", project.id, currentUser.id);
+
+      const handleUpdateOnlineUsers = (users: string[]) => {
+        setOnlineUsers(users);
+      };
+
+      socket.on("update-online-users", handleUpdateOnlineUsers);
+
+      return () => {
+        socket.off("update-online-users", handleUpdateOnlineUsers);
+      };
+    }
+  }, [socket, project, currentUser]);
 
   if (isLoading || !project) {
     return (
@@ -82,9 +101,24 @@ function ProjectLayoutContent({ children }: { children: React.ReactNode }) {
           </Link>
           <h1 className="text-3xl font-bold">{project.name}</h1>
         </div>
-        {isAdmin && (
-          <Button onClick={() => setIsMembersModalOpen(true)}>Share</Button>
-        )}
+        <div className="flex items-center gap-2">
+          <div className="flex -space-x-2">
+            {project.members
+              .filter((member) => onlineUsers.includes(member.user.id))
+              .map((member) => (
+                <div
+                  key={member.user.id}
+                  title={member.user.name ?? ""}
+                  className="h-8 w-8 rounded-full bg-slate-600 flex items-center justify-center text-xs font-bold ring-2 ring-slate-900"
+                >
+                  {member.user.name?.charAt(0).toUpperCase()}
+                </div>
+              ))}
+          </div>
+          {isAdmin && (
+            <Button onClick={() => setIsMembersModalOpen(true)}>Share</Button>
+          )}
+        </div>
       </div>
       <ProjectNav projectId={project.id} />
       <div>{children}</div>

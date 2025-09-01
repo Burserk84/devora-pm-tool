@@ -16,7 +16,8 @@ import { SortableContext, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { TaskDetailsModal } from "@/components/TaskDetailsModal";
 import { TaskCardSkeleton } from "@/components/ui/TaskCardSkeleton";
-import type { Task } from "@/types"; // <-- IMPORT a single source of truth
+import type { Task } from "@/types";
+import { motion } from "framer-motion";
 
 // --- CONSTANTS ---
 const columns: Task["status"][] = ["TODO", "IN_PROGRESS", "DONE"];
@@ -36,7 +37,15 @@ function TaskCard({
     useSortable({ id: task.id });
   const style = { transform: CSS.Transform.toString(transform), transition };
   return (
-    <div ref={setNodeRef} style={style} {...attributes}>
+    <motion.div
+      layout
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+    >
       <Card
         onClick={() => onClick(task.id)}
         className="p-3 bg-slate-700 group relative flex flex-col items-start gap-2 cursor-pointer"
@@ -82,7 +91,7 @@ function TaskCard({
           </div>
         )}
       </Card>
-    </div>
+    </motion.div>
   );
 }
 function KanbanColumn({

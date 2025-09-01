@@ -20,16 +20,13 @@ if (!process.env.CLIENT_URL || !process.env.JWT_SECRET) {
   console.error(
     "FATAL ERROR: Missing required environment variables. Please check your .env file."
   );
-  process.exit(1); 
+  process.exit(1);
 }
 
 const app = express();
 const httpServer = createServer(app);
 
-const allowedOrigins = [
-  "http://localhost:3000",
-  process.env.CLIENT_URL, 
-];
+const allowedOrigins = ["http://localhost:3000", process.env.CLIENT_URL];
 
 const io = new Server(httpServer, {
   cors: {
@@ -53,11 +50,26 @@ app.use("/notifications", protect, notificationRouter);
 app.use("/admin", protect, adminRouter);
 
 // --- REAL-TIME CHAT LOGIC (No changes needed here) ---
+// server/src/index.ts
+
+// ... other imports
+
+// ... after io initialization
+
+const onlineUsers = new Map<string, { userId: string; projectId: string }>();
+
 io.on("connection", (socket) => {
   console.log("🔌 A user connected:", socket.id);
 
-  socket.on("joinProject", (projectId) => {
+  socket.on("joinProject", (projectId, userId) => {
     socket.join(projectId);
+    onlineUsers.set(socket.id, { userId, projectId });
+
+    const usersInProject = Array.from(onlineUsers.values())
+      .filter((u) => u.projectId === projectId)
+      .map((u) => u.userId);
+
+    io.in(projectId).emit("update-online-users", usersInProject);
     console.log(`User ${socket.id} joined project room: ${projectId}`);
   });
 
@@ -82,6 +94,14 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
+    const user = onlineUsers.get(socket.id);
+    if (user) {
+      onlineUsers.delete(socket.id);
+      const usersInProject = Array.from(onlineUsers.values())
+        .filter((u) => u.projectId === user.projectId)
+        .map((u) => u.userId);
+      io.in(user.projectId).emit("update-online-users", usersInProject);
+    }
     console.log("🔥 A user disconnected:", socket.id);
   });
 });

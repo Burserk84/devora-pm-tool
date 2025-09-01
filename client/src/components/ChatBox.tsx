@@ -31,16 +31,13 @@ export function ChatBox({ projectId }: { projectId: string }) {
     // 1. Fetch chat history
     getMessagesForProject(projectId).then(setMessages);
 
-    // 2. Join the project's chat room
-    socket.emit("joinProject", projectId);
-
-    // 3. Listen for incoming messages
+    // 2. Listen for incoming messages
     const handleReceiveMessage = (message: Message) => {
       setMessages((prevMessages) => [...prevMessages, message]);
     };
     socket.on("receiveMessage", handleReceiveMessage);
 
-    // 4. Clean up listeners on unmount
+    // 3. Clean up listeners on unmount
     return () => {
       socket.off("receiveMessage", handleReceiveMessage);
     };

@@ -17,22 +17,20 @@ const socketInstance = io("http://localhost:5001", {
 const SocketContext = createContext<SocketContextType | undefined>(undefined);
 
 export const SocketProvider = ({ children }: { children: ReactNode }) => {
-  const { token } = useAuth();
+  const { token, user } = useAuth();
 
   useEffect(() => {
-    if (token) {
-      // If we have a token, connect the socket
+    if (token && user) {
+      socketInstance.auth = { userId: user.id }; 
       socketInstance.connect();
     } else {
-      // If no token, disconnect
       socketInstance.disconnect();
     }
 
-    // Clean up the connection on unmount
     return () => {
       socketInstance.disconnect();
     };
-  }, [token]);
+  }, [token, user]);
 
   return (
     <SocketContext.Provider value={{ socket: socketInstance }}>
