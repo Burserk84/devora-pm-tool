@@ -1,3 +1,5 @@
+// client/src/context/SocketContext.tsx
+
 "use client";
 
 import { createContext, useContext, useEffect, ReactNode } from "react";
@@ -8,29 +10,33 @@ interface SocketContextType {
   socket: Socket | null;
 }
 
+// Get the API URL from environment variables, defaulting for local development
+const URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5001";
+
 // Create the socket instance outside the component
-// This ensures it's only created once per application lifecycle
-const socketInstance = io("http://localhost:5001", {
-  autoConnect: false, // We will connect manually
+const socketInstance = io(URL, {
+  autoConnect: false,
 });
 
 const SocketContext = createContext<SocketContextType | undefined>(undefined);
 
 export const SocketProvider = ({ children }: { children: ReactNode }) => {
-  const { token, user } = useAuth();
+  const { token } = useAuth();
 
   useEffect(() => {
-    if (token && user) {
-      socketInstance.auth = { userId: user.id }; 
+    if (token) {
+      // If we have a token, connect the socket
       socketInstance.connect();
     } else {
+      // If no token, disconnect
       socketInstance.disconnect();
     }
 
+    // Clean up the connection on unmount
     return () => {
       socketInstance.disconnect();
     };
-  }, [token, user]);
+  }, [token]);
 
   return (
     <SocketContext.Provider value={{ socket: socketInstance }}>
